@@ -4,8 +4,9 @@ from typing import Literal
 
 class ChessServer(socket.socket):
     def __init__(self, server_type: Literal["server", "client"], host=..., port=...):
+        self.server_type = server_type
         super().__init__(socket.AF_INET, socket.SOCK_STREAM)
-        if server_type == "server":
+        if self.server_type == "server":
             self.bind((host, port))
             self.conn: socket.socket | None = None
             print(f'Szerver elindult a következő címen: {host}:{port}')
@@ -13,7 +14,7 @@ class ChessServer(socket.socket):
     def wait_for_connection(self):
         self.listen()
         self.conn, addr = self.accept()
-        print(f'Kapcsolódott: {addr}')
+        return addr
 
     def receive(self):
         data = self.conn.recv(1024)
@@ -25,7 +26,15 @@ class ChessServer(socket.socket):
         print(f'Kapcsolódás a szerverhez: {host}:{port}')
 
     def send_message(self, msg):
-        self.sendall(msg.encode())
+        if self.server_type == "server":
+            self.conn.sendall(msg.encode())
+        else:
+            self.sendall(msg.encode())
+
+    def close_server(self):
+        if isinstance(self.conn, socket.socket):
+            self.conn.close()
+        self.close()
 
 # def start_server():
 #     server = ChessServer('0.0.0.0', 12345)
