@@ -1,11 +1,174 @@
 import tkinter as tk
 from PIL import Image, ImageTk
-from extentions.custom_widgets import ChessBtn
+from extentions.custom_widgets import ChessBtn, Tooltip
 from extentions.ask_two_options import ttk_ask_two_options
+
+from extentions.communication.chess_server import ChessServer
+import socket
+import requests
 
 from time import sleep
 
 from typing import Literal
+
+
+def get_internal_ip():
+    hostname = socket.gethostname()
+    internal_ip = socket.gethostbyname(hostname)
+    return internal_ip
+
+
+def get_external_ip():
+    response = requests.get('https://api.ipify.org')
+    external_ip = response.text
+    return external_ip
+
+
+class OnlineChessWindow(tk.Tk):
+    def __init__(self):
+        self.IMGS_PATH = r'.\img\pieces'
+        self.mode = 'server' if ttk_ask_two_options('Válassz módot:', 'Szerver', 'Kliens', ('Calibri', 20),
+                                                    True, 'Profil, melyhez egy másik játékos csatlakozhat (csak a '
+                                                          'szerver választhat színt)',
+                                                    'Profil, mely képes másokhoz csatlakozni') == 0 else 'client'
+        self.color: Literal["white", "black"] = 'white' if ttk_ask_two_options('Válassz színt:', 'Fehér', 'Fekete',
+                                                                               ('Calibri', 20), True) == 0 else 'black'
+        super().__init__()
+        self.imgs = {
+            'white': {
+                'back': {
+                    'left rock': ImageTk.PhotoImage(Image.open(r'.\img\pieces\white\left_rock.png')),
+                    'left knight': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\left_knight.png')),
+                    'left bishop': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\left_bishop.png')),
+                    'queen': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\queen.png')),
+                    'king': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\king.png')),
+                    'right bishop': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_bishop.png')),
+                    'right knight': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_knight.png')),
+                    'right rock': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_rock.png'))
+                },
+                'fore': {
+                    'left pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/white/left_pawn.png')),
+                    'right pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/white/right_pawn.png'))
+                }
+            },
+            'black': {
+                'back': {
+                    'left rock': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_rock.png')),
+                    'left knight': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_knight.png')),
+                    'left bishop': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_bishop.png')),
+                    'queen': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/queen.png')),
+                    'king': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/king.png')),
+                    'right bishop': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_bishop.png')),
+                    'right knight': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_knight.png')),
+                    'right rock': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_rock.png'))
+                },
+                'fore': {
+                    'left pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_pawn.png')),
+                    'right pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_pawn.png'))
+                }
+            },
+            'empty': ImageTk.PhotoImage(Image.open('./img/empty.png'))
+        }
+        self.title('Online Sakk')
+        self.geometry('1158x608+180+80')
+        self.iconbitmap(default='./img/logo.ico')
+        # self.protocol('WM_DELETE_WINDOW', self.close)
+        self.letters = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
+        self.color_lbl_var = tk.StringVar(self, f'Saját szín: {"fehér" if self.color == "white" else "fekete"}')
+
+        self.next: Literal["white", "black"] = 'white'
+        self.next_lbl_var = tk.StringVar(self, 'Következő játékos: fehér')
+
+        self.board = tk.Frame(self)  # 400x400  # , width=400, height=400
+        self.board.grid(column=0, row=0)
+        self.others_frame = tk.Frame(self)
+        self.others_frame.grid(column=1, row=0, sticky=tk.NW, padx=20)
+        self.color_lbl = tk.Label(self.others_frame, textvariable=self.color_lbl_var, font=('Arial', 20))
+        self.color_lbl.grid(column=0, row=0, sticky=tk.NW, pady=17)
+        self.next_lbl = tk.Label(self.others_frame, textvariable=self.next_lbl_var, font=('Arial', 25))
+        self.next_lbl.grid(column=0, row=1, sticky=tk.NW, pady=17)
+
+        if self.mode == 'server':
+            self.ip_frame = tk.Frame(self.others_frame)
+            self.ip_frame.grid(column=0, row=2, sticky=tk.NW, pady=17)
+            self.ip_info_frame = tk.Frame(self.ip_frame)
+            self.ip_info_frame.grid(column=0, row=0)
+
+            self.internal_ip = get_internal_ip()
+            self.internal_ip_lbl = tk.Label(self.ip_info_frame, text=f'Belső IP-cím: {self.internal_ip}',
+                                            font=('Times New Roman', 12))
+            Tooltip(self.internal_ip_lbl, 'Ha a két fél ugyanahhoz a hálózathoz csatlakozik, akkor ezt küldje el '
+                                          'ellenfelének')
+            self.internal_ip_lbl.grid(column=0, row=0, sticky=tk.NW)
+
+            self.external_ip = get_external_ip()
+            self.external_ip_lbl = tk.Label(self.ip_info_frame, text=f'Külső IP-cím: {self.external_ip}',
+                                            font=('Times New Roman', 12))
+            Tooltip(self.external_ip_lbl, 'Ha a két fél két különböző hálózathoz csatlakozik, akkor ezt küldje el '
+                                          'ellenfelének')
+            self.external_ip_lbl.grid(column=0, row=1, sticky=tk.NW, pady=(5, 0), padx=(0, 20))
+
+            self.copy_internal_ip = tk.Button(self.ip_info_frame, text='Belső IP-cím másolása',
+                                              command=lambda: self.add_to_clipboard(self.internal_ip))
+            self.copy_internal_ip.grid(column=1, row=0, sticky=tk.E)
+            self.copy_external_ip = tk.Button(self.ip_info_frame, text='Külső IP-cím másolása',
+                                              command=lambda: self.add_to_clipboard(self.external_ip))
+            self.copy_external_ip.grid(column=1, row=1, sticky=tk.E)
+
+            self.ip_info_lbl = tk.Label(self.ip_frame, text='Az IP-címe segítségével tudnak mások Önhöz csatlakozni.')
+            self.ip_info_lbl.grid(column=0, row=1, sticky=tk.W, pady=10)
+        else:
+            pass
+
+        self.focus_force()
+
+    def add_to_clipboard(self, string):
+        self.clipboard_clear()
+        self.clipboard_append(string)
+
+    def select_btn(self, event):
+        if (ChessWindow.prev_widget is not None) and (
+                ChessWindow.prev_widget.img.split()[0] == event.widget.img.split()[0]):
+            ChessWindow.prev_widget["state"] = tk.NORMAL
+        if ((self.next == 'white') and ('white' in event.widget.img)) or (
+                (self.next == 'black') and ('black' in event.widget.img)):
+            event.widget["state"] = tk.DISABLED
+            ChessWindow.prev_widget = event.widget
+        elif (ChessWindow.prev_widget is not None) and (ChessWindow.prev_widget.img != 'empty'):
+            if 'king' not in event.widget.img:
+                prev_w_img = ChessWindow.prev_widget.img.split(maxsplit=1)
+                event.widget.config(
+                    image=self.imgs[prev_w_img[0]]['fore' if 'pawn' in prev_w_img[1] else 'back'][prev_w_img[1]])
+                event.widget.img = ChessWindow.prev_widget.img
+
+                ChessWindow.prev_widget.config(image=self.imgs['empty'])
+                ChessWindow.prev_widget.img = 'empty'
+                ChessWindow.prev_widget['state'] = tk.NORMAL
+                if self.next == 'white':
+                    self.next = 'black'
+                    self.next_lbl_var.set('Következő játékos: fekete')
+                else:
+                    self.next = 'white'
+                    self.next_lbl_var.set('Következő játékos: fehér')
+            else:
+                event.widget.config(activebackground='red', bg='red')
+                if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
+                                       f'Ha nem, akkor bezárjuk az alkalmazást.', 'Kérek új játékot!',
+                                       'Bezárom az alkalmazást', ('Arial', 15), self) == 0:
+                    self.destroy()
+                    ChessWindow.prev_widget = None
+                    del self
+                    main()
+                else:
+                    self.close()
+        print(event.widget.img)
+
+    def close(self):
+        self.update_idletasks()
+        for i in range(1, 101):
+            self.attributes('-alpha', (100 - i) / 100)
+            sleep(0.01)
+        self.destroy()
 
 
 class ChessWindow(tk.Tk):
@@ -57,8 +220,15 @@ class ChessWindow(tk.Tk):
 
         self.board = tk.Frame(self)  # 400x400  # , width=400, height=400
         self.board.grid(column=0, row=0)
-        self.next_lbl = tk.Label(self, textvariable=self.next_lbl_var, font=('Arial', 25))
-        self.next_lbl.grid(column=1, row=0, sticky=tk.NW, padx=20, pady=17)
+        self.others_frame = tk.Frame(self)
+        self.others_frame.grid(column=1, row=0, sticky=tk.NW)
+        self.next_lbl = tk.Label(self.others_frame, textvariable=self.next_lbl_var, font=('Arial', 25))
+        self.next_lbl.grid(column=0, row=0, sticky=tk.NW, padx=20, pady=17)
+
+        self.onlineplayer_btn = tk.Button(self.others_frame, text='Online játék távoli ellenféllel',
+                                          font=('Calibri', 15), bg='lightyellow', activebackground='yellow',
+                                          command=self.switch_to_online)
+        self.onlineplayer_btn.grid(column=0, row=1, pady=100, ipadx=10, ipady=7)
 
         self.row_frames = []  # 400x50
         self.btns = []
@@ -164,6 +334,11 @@ class ChessWindow(tk.Tk):
                 else:
                     self.close()
         print(event.widget.img)
+
+    def switch_to_online(self):
+        self.destroy()
+        app = OnlineChessWindow()
+        app.mainloop()
 
     def close(self):
         self.update_idletasks()
