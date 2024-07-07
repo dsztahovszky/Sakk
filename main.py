@@ -7,6 +7,7 @@ from extentions.communication.chess_server import ChessServer
 import socket
 import requests
 
+from threading import Thread
 from time import sleep
 
 from typing import Literal
@@ -27,10 +28,14 @@ def get_external_ip():
 class OnlineChessWindow(tk.Tk):
     def __init__(self):
         self.IMGS_PATH = r'.\img\pieces'
-        self.mode = 'server' if ttk_ask_two_options('Válassz módot:', 'Szerver', 'Kliens', ('Calibri', 20),
-                                                    True, 'Profil, melyhez egy másik játékos csatlakozhat (csak a '
-                                                          'szerver választhat színt)',
-                                                    'Profil, mely képes másokhoz csatlakozni') == 0 else 'client'
+        self.server: ChessServer | None = None
+        self.mode: Literal["server", "client"] = 'server' if ttk_ask_two_options('Válassz módot:', 'Szerver', 'Kliens',
+                                                                                 ('Calibri', 20), True,
+                                                                                 'Profil, melyhez egy másik játékos '
+                                                                                 'csatlakozhat (csak a szerver '
+                                                                                 'választhat színt)',
+                                                                                 'Profil, mely képes másokhoz '
+                                                                                 'csatlakozni') == 0 else 'client'
         self.color: Literal["white", "black"] = 'white' if ttk_ask_two_options('Válassz színt:', 'Fehér', 'Fekete',
                                                                                ('Calibri', 20), True) == 0 else 'black'
         super().__init__()
@@ -72,6 +77,7 @@ class OnlineChessWindow(tk.Tk):
         self.title('Online Sakk')
         self.geometry('1158x608+180+80')
         self.iconbitmap(default='./img/logo.ico')
+        self.protocol("WM_DELETE_WINDOW", self.close)
         # self.protocol('WM_DELETE_WINDOW', self.close)
         self.letters = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
         self.color_lbl_var = tk.StringVar(self, f'Saját szín: {"fehér" if self.color == "white" else "fekete"}')
@@ -117,6 +123,15 @@ class OnlineChessWindow(tk.Tk):
 
             self.ip_info_lbl = tk.Label(self.ip_frame, text='Az IP-címe segítségével tudnak mások Önhöz csatlakozni.')
             self.ip_info_lbl.grid(column=0, row=1, sticky=tk.W, pady=10)
+
+            self.server_state_var = tk.StringVar(self, 'Szerver indítása..')
+            self.server_state_lbl = tk.Label(self.others_frame, textvariable=self.server_state_var)
+            self.server_state_lbl.grid(column=0, row=3, sticky=tk.W)
+            self.update()
+
+            self.server_thread = Thread(target=self.start_server, daemon=True)
+            self.server_thread.start()
+
         else:
             pass
 
@@ -125,6 +140,13 @@ class OnlineChessWindow(tk.Tk):
     def add_to_clipboard(self, string):
         self.clipboard_clear()
         self.clipboard_append(string)
+
+    def start_server(self):
+        self.server = ChessServer('server', '0.0.0.0', 12345)
+        self.server_state_var.set('A szerver elindult.')
+        connected_addr = self.server.wait_for_connection()
+        self.server_state_var.set(f'Csatlakozva a következőhöz: {connected_addr}')
+        self.server.send_message(f'you: {"black" if self.color == "white" else "white"}')
 
     def select_btn(self, event):
         if (ChessWindow.prev_widget is not None) and (
@@ -164,6 +186,7 @@ class OnlineChessWindow(tk.Tk):
         print(event.widget.img)
 
     def close(self):
+        self.server.close_server()
         self.update_idletasks()
         for i in range(1, 101):
             self.attributes('-alpha', (100 - i) / 100)
