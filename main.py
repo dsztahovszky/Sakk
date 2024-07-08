@@ -36,8 +36,10 @@ class OnlineChessWindow(tk.Tk):
                                                                                  'választhat színt)',
                                                                                  'Profil, mely képes másokhoz '
                                                                                  'csatlakozni') == 0 else 'client'
-        self.color: Literal["white", "black"] = 'white' if ttk_ask_two_options('Válassz színt:', 'Fehér', 'Fekete',
-                                                                               ('Calibri', 20), True) == 0 else 'black'
+        if self.mode == "server":
+            self.color: Literal["white", "black"] = 'white' if ttk_ask_two_options('Válassz színt:', 'Fehér', 'Fekete',
+                                                                                   ('Calibri', 20),
+                                                                                   True) == 0 else 'black'
         super().__init__()
         self.imgs = {
             'white': {
@@ -127,10 +129,12 @@ class OnlineChessWindow(tk.Tk):
             self.server_state_var = tk.StringVar(self, 'Szerver indítása..')
             self.server_state_lbl = tk.Label(self.others_frame, textvariable=self.server_state_var)
             self.server_state_lbl.grid(column=0, row=3, sticky=tk.W)
+            self.stop_server_btn = tk.Button(self.others_frame, text='Szerver leállítása')
+            self.stop_server_btn.grid(column=1, row=3)
             self.update()
 
-            self.server_thread = Thread(target=self.start_server, daemon=True)
-            self.server_thread.start()
+            self.server_thread: Thread | None = None
+            self.start_server()
 
         else:
             pass
@@ -142,11 +146,28 @@ class OnlineChessWindow(tk.Tk):
         self.clipboard_append(string)
 
     def start_server(self):
-        self.server = ChessServer('server', '0.0.0.0', 12345)
-        self.server_state_var.set('A szerver elindult.')
-        connected_addr = self.server.wait_for_connection()
-        self.server_state_var.set(f'Csatlakozva a következőhöz: {connected_addr}')
-        self.server.send_message(f'you: {"black" if self.color == "white" else "white"}')
+        def start():
+            self.server = ChessServer('server', '0.0.0.0', 12345)
+            self.server_state_var.set('A szerver elindult.')
+            self.stop_server_btn.config(command=self.stop_server)
+            connected_addr = self.server.wait_for_connection()
+            if connected_addr is not None:
+                self.server_state_var.set(f'Csatlakozva a következőhöz: {connected_addr}')
+                self.server.send_message(f'you: {"black" if self.color == "white" else "white"}')
+
+        self.server_thread = Thread(target=start, daemon=True)
+        self.server_thread.start()
+
+    def stop_server(self):
+        def start():
+            self.server_state_var.set('Szerver indítása..')
+            self.stop_server_btn.config(text='Szerver leállítása')
+            self.update()
+            self.start_server()
+
+        self.server.close_server()
+        self.server_state_var.set('Szerver leállítva.')
+        self.stop_server_btn.config(text='Szerver újraindítása', command=start)
 
     def select_btn(self, event):
         if (ChessWindow.prev_widget is not None) and (
