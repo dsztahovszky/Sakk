@@ -1,7 +1,8 @@
 import tkinter as tk
+from tkinter.messagebox import showerror
 from PIL import Image, ImageTk
 from extentions.custom_widgets import ChessBtn, Tooltip
-from extentions.ask_two_options import ttk_ask_two_options
+from extentions.ttk_ask import ttk_ask_two_options, ttk_ask_str, Message
 
 from extentions.communication.chess_server import ChessServer
 import socket
@@ -9,6 +10,7 @@ import requests
 
 from threading import Thread
 from time import sleep
+from sys import exit
 
 from typing import Literal
 
@@ -30,16 +32,39 @@ class OnlineChessWindow(tk.Tk):
         self.IMGS_PATH = r'.\img\pieces'
         self.server: ChessServer | None = None
         self.mode: Literal["server", "client"] = 'server' if ttk_ask_two_options('Válassz módot:', 'Szerver', 'Kliens',
-                                                                                 ('Calibri', 20), True,
-                                                                                 'Profil, melyhez egy másik játékos '
-                                                                                 'csatlakozhat (csak a szerver '
-                                                                                 'választhat színt)',
-                                                                                 'Profil, mely képes másokhoz '
-                                                                                 'csatlakozni') == 0 else 'client'
+                                                                                 ('Calibri', 20),
+                                                                                 b1_tooltip_text='Profil, melyhez egy '
+                                                                                                 'másik játékos '
+                                                                                                 'csatlakozhat (csak '
+                                                                                                 'a szerver '
+                                                                                                 'választhat színt)',
+                                                                                 b2_tooltip_text='Profil, mely képes '
+                                                                                                 'másokhoz '
+                                                                                                 'csatlakozni') == 0 \
+            else 'client'
         if self.mode == "server":
             self.color: Literal["white", "black"] = 'white' if ttk_ask_two_options('Válassz színt:', 'Fehér', 'Fekete',
-                                                                                   ('Calibri', 20),
-                                                                                   True) == 0 else 'black'
+                                                                                   ('Calibri', 20)) == 0 else 'black'
+        else:
+            self.connect_to = ttk_ask_str('Add meg a gép IP-címét, amelyhez csatlakozni szeretnél:', ('Calibri', 20),
+                                          input_placeholder_text='Ide írd az IP-címet')
+            self.server = ChessServer("client")
+            try:
+                self.server.connect_to_server(self.connect_to, 12345)
+            except Exception as ex:
+                showerror('Hiba a csatlakozás közben', str(ex))
+                exit()
+
+            def get_color():
+                self.color = self.server.receive().split()[1]
+
+            get_color_thread = Thread(target=get_color)
+            get_color_thread.start()
+
+            # msg = Message(f'Csatlakozás ehhez: {self.connect_to}', ('Calibri', 20))
+            # sleep(1)
+            # msg.close()
+            # exit()
         super().__init__()
         self.imgs = {
             'white': {
@@ -197,7 +222,7 @@ class OnlineChessWindow(tk.Tk):
                 event.widget.config(activebackground='red', bg='red')
                 if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
                                        f'Ha nem, akkor bezárjuk az alkalmazást.', 'Kérek új játékot!',
-                                       'Bezárom az alkalmazást', ('Arial', 15), self) == 0:
+                                       'Bezárom az alkalmazást', ('Arial', 15), parent=self) == 0:
                     self.destroy()
                     ChessWindow.prev_widget = None
                     del self
@@ -370,7 +395,7 @@ class ChessWindow(tk.Tk):
                 event.widget.config(activebackground='red', bg='red')
                 if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
                                        f'Ha nem, akkor bezárjuk az alkalmazást.', 'Kérek új játékot!',
-                                       'Bezárom az alkalmazást', ('Arial', 15), self) == 0:
+                                       'Bezárom az alkalmazást', ('Arial', 15), parent=self) == 0:
                     self.destroy()
                     ChessWindow.prev_widget = None
                     del self
