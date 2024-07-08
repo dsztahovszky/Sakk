@@ -13,8 +13,11 @@ class ChessServer(socket.socket):
 
     def wait_for_connection(self):
         self.listen()
-        self.conn, addr = self.accept()
-        return addr
+        try:
+            self.conn, addr = self.accept()
+            return addr
+        except OSError:
+            pass
 
     def receive(self):
         data = self.conn.recv(1024)
