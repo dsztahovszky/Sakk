@@ -8,8 +8,8 @@ class ChessServer(socket.socket):
         super().__init__(socket.AF_INET, socket.SOCK_STREAM)
         if self.server_type == "server":
             self.bind((host, port))
-            self.conn: socket.socket | None = None
             print(f'Szerver elindult a következő címen: {host}:{port}')
+        self.conn: socket.socket | None = None
 
     def wait_for_connection(self):
         self.listen()
