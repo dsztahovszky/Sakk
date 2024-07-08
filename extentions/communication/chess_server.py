@@ -20,7 +20,7 @@ class ChessServer(socket.socket):
             pass
 
     def receive(self):
-        data = self.conn.recv(1024)
+        data = self.conn.recv(1024) if self.server_type == "server" else self.recv(1024)
         if data:
             return data.decode()
 
