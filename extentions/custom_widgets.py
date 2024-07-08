@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 
 
 class ChessBtn(tk.Button):
@@ -46,3 +47,20 @@ class Tooltip:
             self.tooltip_window.wm_geometry(f"+{x}+{y}")
         except AttributeError:
             self.hide_tooltip()
+
+
+class PlaceholderEntry(ttk.Entry):
+    def __init__(self, master, placeholder_text: str, **kwargs):
+        self.placeholder_text = placeholder_text
+        super().__init__(master, **kwargs)
+        self.bind("<FocusOut>", lambda event: self._show_placeholder())
+        self.bind("<FocusIn>", lambda event: self._hide_placeholder())
+        self._show_placeholder()
+
+    def _show_placeholder(self):
+        self.insert(0, self.placeholder_text)
+        self.config(foreground='grey')
+
+    def _hide_placeholder(self):
+        self.delete(0, tk.END)
+        self.config(foreground='black')
