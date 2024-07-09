@@ -315,9 +315,9 @@ class OnlineChessWindow(tk.Tk):
                 else:
                     self.next = 'white'
                     self.next_lbl_var.set('Következő játékos: fehér')
-                self.server.send_message(
-                    'step {from_} {to}'.format(from_=self.find_widget_coords(OnlineChessWindow.prev_widget),
-                                               to=self.find_widget_coords(event.widget)))
+                from_c = self.find_widget_coords(OnlineChessWindow.prev_widget)
+                to_c = self.find_widget_coords(event.widget)
+                self.server.send_message('step {from_} {to}'.format(from_=from_c[0] + from_c[1], to=to_c[0] + to_c[1]))
             # else:
             #     event.widget.config(activebackground='red', bg='red')
             #     if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
