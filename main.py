@@ -277,42 +277,58 @@ class OnlineChessWindow(tk.Tk):
                             image=self.imgs[words[2]]['fore'][' '.join([words[1], words[3]])])
                         self.btns[btns_i][self.letters[-i]].img = f'{words[2]} right pawn'
 
+    def find_widget_coords(self, widget: tk.Widget):
+        """
+        Finds the coordinates of the argument widget.
+        :param widget: the widget to find
+        :return: the coordinates of the widget
+        :rtype: tuple[str, int]
+        """
+        for i, row in enumerate(self.btns):
+            for letter, w in row.items():
+                if w == widget:
+                    coords = (letter, i)
+                    return coords
+
     prev_widget = None
 
     def select_btn(self, event):
-        if (ChessWindow.prev_widget is not None) and (
-                ChessWindow.prev_widget.img.split()[0] == event.widget.img.split()[0]):
-            ChessWindow.prev_widget["state"] = tk.NORMAL
+        if (OnlineChessWindow.prev_widget is not None) and (
+                OnlineChessWindow.prev_widget.img.split()[0] == event.widget.img.split()[0]):
+            OnlineChessWindow.prev_widget["state"] = tk.NORMAL
         if (self.next == self.color) and (self.color in event.widget.img):
             event.widget["state"] = tk.DISABLED
-            ChessWindow.prev_widget = event.widget
-        elif (ChessWindow.prev_widget is not None) and (ChessWindow.prev_widget.img != 'empty'):
+            OnlineChessWindow.prev_widget = event.widget
+        elif (OnlineChessWindow.prev_widget is not None) and (OnlineChessWindow.prev_widget.img != 'empty'):
             if 'king' not in event.widget.img:
-                prev_w_img = ChessWindow.prev_widget.img.split(maxsplit=1)
+                prev_w_img = OnlineChessWindow.prev_widget.img.split(maxsplit=1)
                 event.widget.config(
                     image=self.imgs[prev_w_img[0]]['fore' if 'pawn' in prev_w_img[1] else 'back'][prev_w_img[1]])
-                event.widget.img = ChessWindow.prev_widget.img
+                event.widget.img = OnlineChessWindow.prev_widget.img
 
-                ChessWindow.prev_widget.config(image=self.imgs['empty'])
-                ChessWindow.prev_widget.img = 'empty'
-                ChessWindow.prev_widget['state'] = tk.NORMAL
+                OnlineChessWindow.prev_widget.config(image=self.imgs['empty'])
+                OnlineChessWindow.prev_widget.img = 'empty'
+                OnlineChessWindow.prev_widget['state'] = tk.NORMAL
                 if self.next == 'white':
                     self.next = 'black'
                     self.next_lbl_var.set('Következő játékos: fekete')
                 else:
                     self.next = 'white'
                     self.next_lbl_var.set('Következő játékos: fehér')
-            else:
-                event.widget.config(activebackground='red', bg='red')
-                if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
-                                       f'Ha nem, akkor bezárjuk az alkalmazást.', 'Kérek új játékot!',
-                                       'Bezárom az alkalmazást', ('Arial', 15), parent=self) == 0:
-                    self.destroy()
-                    ChessWindow.prev_widget = None
-                    del self
-                    main()
-                else:
-                    self.close()
+                self.server.send_message(
+                    'step {from_} {to}'.format(from_=self.find_widget_coords(OnlineChessWindow.prev_widget),
+                                               to=self.find_widget_coords(event.widget)))
+            # else:
+            #     event.widget.config(activebackground='red', bg='red')
+            #     if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
+            #                            f'Ha nem, akkor bezárjuk az alkalmazást.', 'Kérek új játékot!',
+            #                            'Bezárom az alkalmazást', ('Arial', 15), parent=self) == 0:
+            #         self.destroy()
+            #         ChessWindow.prev_widget = None
+            #         del self
+            #         main()
+            #     else:
+            #         self.close()
         print(event.widget.img)
 
     def close(self):
