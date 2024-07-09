@@ -49,17 +49,27 @@ class OnlineChessWindow(tk.Tk):
             self.connect_to = ttk_ask_str('Add meg a gép IP-címét, amelyhez csatlakozni szeretnél:', ('Calibri', 20),
                                           input_placeholder_text='Ide írd az IP-címet')
             self.server = ChessServer("client")
+
+            # connect_msg = Message('Csatlakozás..', ('Calibri', 20))
+
+            # def connect():
             try:
                 self.server.connect_to_server(self.connect_to, 12345)
+                # connect_msg.close()
             except Exception as ex:
                 showerror('Hiba a csatlakozás közben', str(ex))
                 exit()
+
+            # connect_thread = Thread(target=connect)
+            # connect_thread.start()
+            # connect_msg.show()
 
             def get_color():
                 self.color = self.server.receive().split()[1]
 
             get_color_thread = Thread(target=get_color)
             get_color_thread.start()
+            self.generate_btns()
 
             # msg = Message(f'Csatlakozás ehhez: {self.connect_to}', ('Calibri', 20))
             # sleep(1)
@@ -69,37 +79,45 @@ class OnlineChessWindow(tk.Tk):
         self.imgs = {
             'white': {
                 'back': {
-                    'left rock': ImageTk.PhotoImage(Image.open(r'.\img\pieces\white\left_rock.png')),
-                    'left knight': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\left_knight.png')),
-                    'left bishop': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\left_bishop.png')),
-                    'queen': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\queen.png')),
-                    'king': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\king.png')),
-                    'right bishop': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_bishop.png')),
-                    'right knight': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_knight.png')),
-                    'right rock': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_rock.png'))
+                    'left rock': ImageTk.PhotoImage(Image.open(r'.\img\pieces\white\left_rock.png'), master=self),
+                    'left knight': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\left_knight.png'),
+                                                      master=self),
+                    'left bishop': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\left_bishop.png'),
+                                                      master=self),
+                    'queen': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\queen.png'), master=self),
+                    'king': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\king.png'), master=self),
+                    'right bishop': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_bishop.png'),
+                                                       master=self),
+                    'right knight': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_knight.png'),
+                                                       master=self),
+                    'right rock': ImageTk.PhotoImage(Image.open(fr'{self.IMGS_PATH}\white\right_rock.png'), master=self)
                 },
                 'fore': {
-                    'left pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/white/left_pawn.png')),
-                    'right pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/white/right_pawn.png'))
+                    'left pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/white/left_pawn.png'), master=self),
+                    'right pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/white/right_pawn.png'), master=self)
                 }
             },
             'black': {
                 'back': {
-                    'left rock': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_rock.png')),
-                    'left knight': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_knight.png')),
-                    'left bishop': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_bishop.png')),
-                    'queen': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/queen.png')),
-                    'king': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/king.png')),
-                    'right bishop': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_bishop.png')),
-                    'right knight': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_knight.png')),
-                    'right rock': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_rock.png'))
+                    'left rock': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_rock.png'), master=self),
+                    'left knight': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_knight.png'),
+                                                      master=self),
+                    'left bishop': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_bishop.png'),
+                                                      master=self),
+                    'queen': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/queen.png'), master=self),
+                    'king': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/king.png'), master=self),
+                    'right bishop': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_bishop.png'),
+                                                       master=self),
+                    'right knight': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_knight.png'),
+                                                       master=self),
+                    'right rock': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_rock.png'), master=self)
                 },
                 'fore': {
-                    'left pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_pawn.png')),
-                    'right pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_pawn.png'))
+                    'left pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/left_pawn.png'), master=self),
+                    'right pawn': ImageTk.PhotoImage(Image.open(f'{self.IMGS_PATH}/black/right_pawn.png'), master=self)
                 }
             },
-            'empty': ImageTk.PhotoImage(Image.open('./img/empty.png'))
+            'empty': ImageTk.PhotoImage(Image.open('./img/empty.png'), master=self)
         }
         self.title('Online Sakk')
         self.geometry('1158x608+180+80')
@@ -164,6 +182,9 @@ class OnlineChessWindow(tk.Tk):
         else:
             pass
 
+        self.row_frames = []
+        self.btns = []
+
         self.focus_force()
 
     def add_to_clipboard(self, string):
@@ -179,6 +200,7 @@ class OnlineChessWindow(tk.Tk):
             if connected_addr is not None:
                 self.server_state_var.set(f'Csatlakozva a következőhöz: {connected_addr}')
                 self.server.send_message(f'you: {"black" if self.color == "white" else "white"}')
+                self.generate_btns()
 
         self.server_thread = Thread(target=start, daemon=True)
         self.server_thread.start()
@@ -194,12 +216,74 @@ class OnlineChessWindow(tk.Tk):
         self.server_state_var.set('Szerver leállítva.')
         self.stop_server_btn.config(text='Szerver újraindítása', command=start)
 
+    def generate_btns(self):
+        """Generates the buttons and places them on the board"""
+        for y in range(8):
+            self.row_frames.append(tk.Frame(self.board))  # , width=400, height=50
+            self.row_frames[y].grid(column=0, row=y)
+            btns_row = {}
+            for x in range(8):
+                btns_row[self.letters[x]] = ChessBtn('empty', master=self.row_frames[y], image=self.imgs['empty'])
+                btns_row[self.letters[x]].bind('<B1-ButtonRelease>', self.select_btn)
+                # 50x50  , width=7, height=3
+                if ((y % 2 == 0) and (x % 2 == 0)) or ((y % 2 != 0) and (x % 2 != 0)):
+                    btns_row[self.letters[x]].config(bg='lightgrey', activebackground='#2a2a2a')
+                else:
+                    btns_row[self.letters[x]].config(bg='#2a2a2a', activebackground='lightgrey')
+                btns_row[self.letters[x]].grid(column=x, row=y)
+            self.btns.append(btns_row)
+
+        standard = [
+            # 1-es sor
+            {'coords': (0, 'h'), 'img': self.imgs['white']['back']['left rock'], 'id': 'white left rock'},
+            {'coords': (0, 'g'), 'img': self.imgs['white']['back']['left knight'], 'id': 'white left knight'},
+            {'coords': (0, 'f'), 'img': self.imgs['white']['back']['left bishop'], 'id': 'white left bishop'},
+            {'coords': (0, 'e'), 'img': self.imgs['white']['back']['queen'], 'id': 'white queen'},
+            {'coords': (0, 'd'), 'img': self.imgs['white']['back']['king'], 'id': 'white king'},
+            {'coords': (0, 'c'), 'img': self.imgs['white']['back']['right bishop'], 'id': 'white right bishop'},
+            {'coords': (0, 'b'), 'img': self.imgs['white']['back']['right knight'], 'id': 'white right knight'},
+            {'coords': (0, 'a'), 'img': self.imgs['white']['back']['right rock'], 'id': 'white right rock'},
+            # 2-es sor
+            '4 left white pawn',
+            '4 right white pawn',
+            # 7-es sor
+            '4 left black pawn',
+            '4 right black pawn',
+            # 8-as sor
+            {'coords': (7, 'h'), 'img': self.imgs['black']['back']['left rock'], 'id': 'black left rock'},
+            {'coords': (7, 'g'), 'img': self.imgs['black']['back']['left knight'], 'id': 'black left knight'},
+            {'coords': (7, 'f'), 'img': self.imgs['black']['back']['left bishop'], 'id': 'black left bishop'},
+            {'coords': (7, 'e'), 'img': self.imgs['black']['back']['queen'], 'id': 'black queen'},
+            {'coords': (7, 'd'), 'img': self.imgs['black']['back']['king'], 'id': 'black king'},
+            {'coords': (7, 'c'), 'img': self.imgs['black']['back']['right bishop'], 'id': 'black right bishop'},
+            {'coords': (7, 'b'), 'img': self.imgs['black']['back']['right knight'], 'id': 'black right knight'},
+            {'coords': (7, 'a'), 'img': self.imgs['black']['back']['right rock'], 'id': 'black right rock'}
+        ]
+        for d in standard:
+            if isinstance(d, dict):
+                self.btns[d['coords'][0]][d['coords'][1]].config(compound=tk.BOTTOM, image=d['img'])
+                self.btns[d['coords'][0]][d['coords'][1]].img = d['id']
+            else:
+                words = d.split()
+                btns_i = 1 if words[2] == 'white' else 6
+                if words[1] == 'left':
+                    for i in range(int(words[0])):
+                        self.btns[btns_i][self.letters[i]].config(
+                            image=self.imgs[words[2]]['fore'][' '.join([words[1], words[3]])])
+                        self.btns[btns_i][self.letters[i]].img = f'{words[2]} left pawn'
+                else:
+                    for i in range(int(words[0]), 0, -1):
+                        self.btns[btns_i][self.letters[-i]].config(
+                            image=self.imgs[words[2]]['fore'][' '.join([words[1], words[3]])])
+                        self.btns[btns_i][self.letters[-i]].img = f'{words[2]} right pawn'
+
+    prev_widget = None
+
     def select_btn(self, event):
         if (ChessWindow.prev_widget is not None) and (
                 ChessWindow.prev_widget.img.split()[0] == event.widget.img.split()[0]):
             ChessWindow.prev_widget["state"] = tk.NORMAL
-        if ((self.next == 'white') and ('white' in event.widget.img)) or (
-                (self.next == 'black') and ('black' in event.widget.img)):
+        if (self.next == self.color) and (self.color in event.widget.img):
             event.widget["state"] = tk.DISABLED
             ChessWindow.prev_widget = event.widget
         elif (ChessWindow.prev_widget is not None) and (ChessWindow.prev_widget.img != 'empty'):
