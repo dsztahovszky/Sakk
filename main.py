@@ -195,6 +195,8 @@ class OnlineChessWindow(tk.Tk):
                     act.img = ' '.join(prev_img)
                     prev.config(image=self.imgs['empty'])
                     prev.img = 'empty'
+                    self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
+                    self.next = 'black' if self.next == 'white' else 'white'
 
                 get_others_step_thread = Thread(target=get_others_step, daemon=True)
                 get_others_step_thread.start()
@@ -345,6 +347,8 @@ class OnlineChessWindow(tk.Tk):
                     act.img = ' '.join(prev_img)
                     prev.config(image=self.imgs['empty'])
                     prev.img = 'empty'
+                    self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
+                    self.next = 'black' if self.next == 'white' else 'white'
 
                 get_others_step_thread = Thread(target=get_others_step, daemon=True)
                 get_others_step_thread.start()
