@@ -79,6 +79,7 @@ class Message:
         self.win.update_idletasks()
         self.win.geometry(f'+{int((self.win.winfo_screenwidth() / 2) - (self.win.winfo_width() / 2))}'
                           f'+{int((self.win.winfo_screenheight() / 2) - (self.win.winfo_height() / 2))}')
+        self.win.update()
 
     def show(self):
         self.win.mainloop()
