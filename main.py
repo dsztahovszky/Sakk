@@ -69,7 +69,6 @@ class OnlineChessWindow(tk.Tk):
 
             get_color_thread = Thread(target=get_color)
             get_color_thread.start()
-            self.generate_btns()
 
             # msg = Message(f'Csatlakozás ehhez: {self.connect_to}', ('Calibri', 20))
             # sleep(1)
@@ -139,6 +138,9 @@ class OnlineChessWindow(tk.Tk):
         self.next_lbl = tk.Label(self.others_frame, textvariable=self.next_lbl_var, font=('Arial', 25))
         self.next_lbl.grid(column=0, row=1, sticky=tk.NW, pady=17)
 
+        self.row_frames = []
+        self.btns = []
+
         if self.mode == 'server':
             self.ip_frame = tk.Frame(self.others_frame)
             self.ip_frame.grid(column=0, row=2, sticky=tk.NW, pady=17)
@@ -180,10 +182,22 @@ class OnlineChessWindow(tk.Tk):
             self.start_server()
 
         else:
-            pass
+            self.generate_btns()
+            if self.color != self.next:
+                def get_others_step():
+                    step = self.server.receive()
+                    from_ = tuple(step.split()[1])
+                    to = tuple(step.split()[2])
+                    prev = self.btns[int(from_[1])][from_[0]]
+                    prev_img = prev.img.split(maxsplit=1)
+                    act = self.btns[int(to[1])][to[0]]
+                    act.config(image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
+                    act.img = ' '.join(prev_img)
+                    prev.config(image=self.imgs['empty'])
+                    prev.img = 'empty'
 
-        self.row_frames = []
-        self.btns = []
+                get_others_step_thread = Thread(target=get_others_step, daemon=True)
+                get_others_step_thread.start()
 
         self.focus_force()
 
@@ -317,7 +331,23 @@ class OnlineChessWindow(tk.Tk):
                     self.next_lbl_var.set('Következő játékos: fehér')
                 from_c = self.find_widget_coords(OnlineChessWindow.prev_widget)
                 to_c = self.find_widget_coords(event.widget)
-                self.server.send_message('step {from_} {to}'.format(from_=from_c[0] + from_c[1], to=to_c[0] + to_c[1]))
+                self.server.send_message(
+                    'step {from_} {to}'.format(from_=from_c[0] + str(from_c[1]), to=to_c[0] + str(to_c[1])))
+
+                def get_others_step():
+                    step = self.server.receive()
+                    from_ = tuple(step.split()[1])
+                    to = tuple(step.split()[2])
+                    prev = self.btns[int(from_[1])][from_[0]]
+                    prev_img = prev.img.split(maxsplit=1)
+                    act = self.btns[int(to[1])][to[0]]
+                    act.config(image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
+                    act.img = ' '.join(prev_img)
+                    prev.config(image=self.imgs['empty'])
+                    prev.img = 'empty'
+
+                get_others_step_thread = Thread(target=get_others_step, daemon=True)
+                get_others_step_thread.start()
             # else:
             #     event.widget.config(activebackground='red', bg='red')
             #     if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
