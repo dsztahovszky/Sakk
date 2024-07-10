@@ -183,23 +183,23 @@ class OnlineChessWindow(tk.Tk):
 
         else:
             self.generate_btns()
-            if self.color != self.next:
-                def get_others_step():
-                    step = self.server.receive()
-                    from_ = tuple(step.split()[1])
-                    to = tuple(step.split()[2])
-                    prev = self.btns[int(from_[1])][from_[0]]
-                    prev_img = prev.img.split(maxsplit=1)
-                    act = self.btns[int(to[1])][to[0]]
-                    act.config(image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
-                    act.img = ' '.join(prev_img)
-                    prev.config(image=self.imgs['empty'])
-                    prev.img = 'empty'
-                    self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
-                    self.next = 'black' if self.next == 'white' else 'white'
+        if self.color != self.next:
+            def get_others_step():
+                step = self.server.receive()
+                from_ = tuple(step.split()[1])
+                to = tuple(step.split()[2])
+                prev = self.btns[int(from_[1])][from_[0]]
+                prev_img = prev.img.split(maxsplit=1)
+                act = self.btns[int(to[1])][to[0]]
+                act.config(image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
+                act.img = ' '.join(prev_img)
+                prev.config(image=self.imgs['empty'])
+                prev.img = 'empty'
+                self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
+                self.next = 'black' if self.next == 'white' else 'white'
 
-                get_others_step_thread = Thread(target=get_others_step, daemon=True)
-                get_others_step_thread.start()
+            get_others_step_thread = Thread(target=get_others_step, daemon=True)
+            get_others_step_thread.start()
 
         self.focus_force()
 
@@ -217,6 +217,24 @@ class OnlineChessWindow(tk.Tk):
                 self.server_state_var.set(f'Csatlakozva a következőhöz: {connected_addr}')
                 self.server.send_message(f'you: {"black" if self.color == "white" else "white"}')
                 self.generate_btns()
+
+            if self.color != self.next:
+                def get_others_step():
+                    step = self.server.receive()
+                    from_ = tuple(step.split()[1])
+                    to = tuple(step.split()[2])
+                    prev = self.btns[int(from_[1])][from_[0]]
+                    prev_img = prev.img.split(maxsplit=1)
+                    act = self.btns[int(to[1])][to[0]]
+                    act.config(image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
+                    act.img = ' '.join(prev_img)
+                    prev.config(image=self.imgs['empty'])
+                    prev.img = 'empty'
+                    self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
+                    self.next = 'black' if self.next == 'white' else 'white'
+
+                get_others_step_thread = Thread(target=get_others_step, daemon=True)
+                get_others_step_thread.start()
 
         self.server_thread = Thread(target=start, daemon=True)
         self.server_thread.start()
