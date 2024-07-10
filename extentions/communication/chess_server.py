@@ -22,6 +22,7 @@ class ChessServer(socket.socket):
     def receive(self):
         data = self.conn.recv(1024) if self.server_type == "server" else self.recv(1024)
         if data:
+            print(data.decode())
             return data.decode()
 
     def connect_to_server(self, host, port):
