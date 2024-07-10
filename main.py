@@ -29,6 +29,7 @@ def get_external_ip():
 
 class OnlineChessWindow(tk.Tk):
     def __init__(self):
+        self.answer = None
         self.IMGS_PATH = r'.\img\pieces'
         self.server: ChessServer | None = None
         self.mode: Literal["server", "client"] = 'server' if ttk_ask_two_options('Válassz módot:', 'Szerver', 'Kliens',
@@ -200,6 +201,9 @@ class OnlineChessWindow(tk.Tk):
         #
         #     get_others_step_thread = Thread(target=get_others_step, daemon=True)
         #     get_others_step_thread.start()
+        self.winner_var = tk.StringVar(self)
+        self.winner_lbl = tk.Label(self, textvariable=self.winner_var, font=('Calibri', 20))
+        self.winner_lbl.grid(column=0, row=4, pady=10, padx=7)
 
         self.focus_force()
 
@@ -374,11 +378,13 @@ class OnlineChessWindow(tk.Tk):
                         self.next = 'black' if self.next == 'white' else 'white'
                     elif step.split()[0] == 'win':
                         self.btns[int(from_[1])][from_[0]]["state"] = tk.DISABLED
+                        bbg = self.btns[int(to[1])][to[0]]['bg']
                         self.btns[int(to[1])][to[0]].config(activebackground='red', bg='red')
                         if ttk_ask_two_options(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.',
-                                               'Kérek új játékot!', 'Bezárom az alkalmazást', ('Calibri', 20), False,
-                                               parent=self) == 0:
+                                               'Kérek új játékot!', 'Bezárom az alkalmazást', ('Calibri', 20)) == 0:
                             self.server.send_message('newgame')
+                            self.btns[int(to[1])][to[0]].config(
+                                activebackground='lightgrey' if bbg == '#2a2a2a' else '#2a2a2a', bg=bbg)
                             for btnrow in self.btns:
                                 for cbtn in btnrow.values():
                                     cbtn.config(image=self.imgs['empty'])
@@ -387,6 +393,7 @@ class OnlineChessWindow(tk.Tk):
                         else:
                             self.server.send_message('close')
                             self.close()
+                        self.winner_var.set(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.')
 
                 get_others_step_thread = Thread(target=get_others_step, daemon=True)
                 get_others_step_thread.start()
@@ -394,17 +401,26 @@ class OnlineChessWindow(tk.Tk):
                 o_cs = self.find_widget_coords(OnlineChessWindow.prev_widget)
                 cs = self.find_widget_coords(event.widget)
                 self.server.send_message(f'win {o_cs[0] + str(o_cs[1])} {cs[0] + str(cs[1])}')
+                bg = event.widget['bg']
                 event.widget.config(activebackground='red', bg='red')
-                Message(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.', ('Calibri', 20),
-                        False, self)
-                answer = self.server.receive()
-                if answer == 'newgame':
+                # Message(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.', ('Calibri', 20),
+                #         False, self)
+                self.answer = ''
+
+                def answ():
+                    self.answer = self.server.receive()
+
+                Thread(target=answ, daemon=True).start()
+                while self.answer == '':
+                    self.update()
+                if self.answer == 'newgame':
+                    event.widget.config(activebackground='lightgrey' if bg == '#2a2a2a' else '#2a2a2a', bg=bg)
                     for row in self.btns:
                         for btn in row.values():
                             btn.config(image=self.imgs['empty'])
                             btn.img = 'empty'
                     self.set_standard_images()
-                elif answer == 'close':
+                elif self.answer == 'close':
                     self.close()
                 # if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
                 #                        f'Ha nem, akkor bezárjuk az alkalmazást.', 'Kérek új játékot!',
