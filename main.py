@@ -1,18 +1,17 @@
-import tkinter as tk
-from tkinter.messagebox import showerror
-from PIL import Image, ImageTk
-from extentions.custom_widgets import ChessBtn, Tooltip
-from extentions.ttk_ask import ttk_ask_two_options, ttk_ask_str, Message
-
-from extentions.communication.chess_server import ChessServer
 import socket
-import requests
-
+import tkinter as tk
+from sys import exit
 from threading import Thread
 from time import sleep
-from sys import exit
-
+from tkinter.messagebox import showerror
 from typing import Literal
+
+import requests
+from PIL import Image, ImageTk
+
+from extentions.communication.chess_server import ChessServer
+from extentions.custom_widgets import ChessBtn, Tooltip
+from extentions.ttk_ask import ttk_ask_two_options, ttk_ask_str
 
 
 def get_internal_ip():
