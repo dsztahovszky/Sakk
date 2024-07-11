@@ -281,6 +281,24 @@ class OnlineChessWindow(tk.Tk):
                             image=self.imgs[words[2]]['fore'][' '.join([words[1], words[3]])])
                         self.btns[btns_i][self.letters[-i]].img = f'{words[2]} right pawn'
 
+        if self.color != self.next:
+            def get_others_step():
+                step = self.server.receive()
+                from_ = tuple(step.split()[1])
+                to = tuple(step.split()[2])
+                prev = self.btns[int(from_[1])][from_[0]]
+                prev_img = prev.img.split(maxsplit=1)
+                act = self.btns[int(to[1])][to[0]]
+                act.config(image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
+                act.img = ' '.join(prev_img)
+                prev.config(image=self.imgs['empty'])
+                prev.img = 'empty'
+                self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
+                self.next = 'black' if self.next == 'white' else 'white'
+
+            get_others_step_thread = Thread(target=get_others_step, daemon=True)
+            get_others_step_thread.start()
+
     def generate_btns(self):
         """Generates the buttons and places them on the board"""
         for y in range(8):
@@ -299,24 +317,6 @@ class OnlineChessWindow(tk.Tk):
             self.btns.append(btns_row)
 
         self.set_standard_images()
-
-        if self.color != self.next:
-            def get_others_step():
-                step = self.server.receive()
-                from_ = tuple(step.split()[1])
-                to = tuple(step.split()[2])
-                prev = self.btns[int(from_[1])][from_[0]]
-                prev_img = prev.img.split(maxsplit=1)
-                act = self.btns[int(to[1])][to[0]]
-                act.config(image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
-                act.img = ' '.join(prev_img)
-                prev.config(image=self.imgs['empty'])
-                prev.img = 'empty'
-                self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
-                self.next = 'black' if self.next == 'white' else 'white'
-
-            get_others_step_thread = Thread(target=get_others_step, daemon=True)
-            get_others_step_thread.start()
 
     def find_widget_coords(self, widget: tk.Widget):
         """
@@ -381,20 +381,30 @@ class OnlineChessWindow(tk.Tk):
                             self.btns[int(from_[1])][from_[0]]["state"] = tk.DISABLED
                             bbg = self.btns[int(to[1])][to[0]]['bg']
                             self.btns[int(to[1])][to[0]].config(activebackground='red', bg='red')
+                            self.attributes('-disabled', True)
                             if ttk_ask_two_options(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.',
                                                    'Kérek új játékot!', 'Bezárom az alkalmazást', ('Calibri', 20)) == 0:
                                 self.server.send_message('newgame')
+                                self.color = 'white' if ttk_ask_two_options('Válassz színt:', 'Fehér', 'Fekete',
+                                                                            ('Calibri', 20)) == 0 else 'black'
+                                self.server.send_message(f'you: {"black" if self.color == "white" else "white"}')
+                                self.attributes('-disabled', False)
+                                self.color_lbl_var.set(f'Saját szín: {"fehér" if self.color == "white" else "fekete"}')
+                                self.next = 'white'
+                                self.next_lbl_var.set('Következő játékos: fehér')
                                 self.btns[int(to[1])][to[0]].config(
                                     activebackground='lightgrey' if bbg == '#2a2a2a' else '#2a2a2a', bg=bbg)
+                                self.btns[int(from_[1])][from_[0]]["state"] = tk.NORMAL
                                 for btnrow in self.btns:
                                     for cbtn in btnrow.values():
                                         cbtn.config(image=self.imgs['empty'])
                                         cbtn.img = 'empty'
                                 self.set_standard_images()
                             else:
+                                self.attributes('-disabled', False)
                                 self.server.send_message('close')
                                 self.close()
-                            self.winner_var.set(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.')
+                            # self.winner_var.set(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.')
 
                 get_others_step_thread = Thread(target=get_others_step, daemon=True)
                 get_others_step_thread.start()
@@ -411,23 +421,36 @@ class OnlineChessWindow(tk.Tk):
                 def answ():
                     self.answer = self.server.receive()
 
-                Thread(target=answ, daemon=True).start()
+                Thread(target=answ).start()
                 while self.answer == '':
                     self.update()
                 if self.answer == 'newgame':
                     event.widget.config(activebackground='lightgrey' if bg == '#2a2a2a' else '#2a2a2a', bg=bg)
+                    OnlineChessWindow.prev_widget["state"] = tk.NORMAL
                     for row in self.btns:
                         for btn in row.values():
                             btn.config(image=self.imgs['empty'])
                             btn.img = 'empty'
                     self.set_standard_images()
+
+                    self.color = ''
+
+                    def get_color():
+                        self.color = self.server.receive().split()[1]
+
+                    Thread(target=get_color).start()
+                    while self.color == '':
+                        self.update()
+                    self.color_lbl_var.set(f'Saját szín: {"fehér" if self.color == "white" else "fekete"}')
+                    self.next = 'white'
+                    self.next_lbl_var.set('Következő játékos: fehér')
                 elif self.answer == 'close':
                     self.close()
                 # if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
                 #                        f'Ha nem, akkor bezárjuk az alkalmazást.', 'Kérek új játékot!',
                 #                        'Bezárom az alkalmazást', ('Arial', 15), parent=self) == 0:
                 # self.destroy()
-                # ChessWindow.prev_widget = None
+                # OnlineChessWindow.prev_widget = None
                 # del self
                 # main()
                 # else:
