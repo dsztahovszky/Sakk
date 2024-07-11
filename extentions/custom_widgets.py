@@ -58,9 +58,11 @@ class PlaceholderEntry(ttk.Entry):
         self._show_placeholder()
 
     def _show_placeholder(self):
-        self.insert(0, self.placeholder_text)
-        self.config(foreground='grey')
+        if self.get() == '':
+            self.insert(0, self.placeholder_text)
+            self.config(foreground='grey')
 
     def _hide_placeholder(self):
-        self.delete(0, tk.END)
-        self.config(foreground='black')
+        if self.get() == self.placeholder_text:
+            self.delete(0, tk.END)
+            self.config(foreground='black')
