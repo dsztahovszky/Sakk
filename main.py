@@ -431,7 +431,6 @@ class OnlineChessWindow(tk.Tk):
                         for btn in row.values():
                             btn.config(image=self.imgs['empty'])
                             btn.img = 'empty'
-                    self.set_standard_images()
 
                     self.color = ''
 
@@ -444,6 +443,7 @@ class OnlineChessWindow(tk.Tk):
                     self.color_lbl_var.set(f'Saját szín: {"fehér" if self.color == "white" else "fekete"}')
                     self.next = 'white'
                     self.next_lbl_var.set('Következő játékos: fehér')
+                    self.set_standard_images()
                 elif self.answer == 'close':
                     self.close()
                 # if ttk_ask_two_options(f'Nyert a {self.next_lbl_var.get().split()[2]} játékos.\nKérsz új játékot? '
