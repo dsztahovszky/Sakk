@@ -34,6 +34,7 @@ def ttk_ask_two_options(question_text: str, button1_text: str, button2_text: str
     win.update_idletasks()
     win.geometry(f'+{int((win.winfo_screenwidth() / 2) - (win.winfo_width() / 2))}'
                  f'+{int((win.winfo_screenheight() / 2) - (win.winfo_height() / 2))}')
+    win.attributes('-topmost', True)
     win.mainloop()
     win.destroy()
     return answer.get()
@@ -63,6 +64,7 @@ def ttk_ask_str(question_text: str, question_font=..., alone=True, input_placeho
     win.update_idletasks()
     win.geometry(f'+{int((win.winfo_screenwidth() / 2) - (win.winfo_width() / 2))}'
                  f'+{int((win.winfo_screenheight() / 2) - (win.winfo_height() / 2))}')
+    win.attributes('-topmost', True)
     win.mainloop()
     win.destroy()
     return answer.get()
@@ -79,6 +81,7 @@ class Message:
         self.win.update_idletasks()
         self.win.geometry(f'+{int((self.win.winfo_screenwidth() / 2) - (self.win.winfo_width() / 2))}'
                           f'+{int((self.win.winfo_screenheight() / 2) - (self.win.winfo_height() / 2))}')
+        self.win.attributes('-topmost', True)
         self.win.update()
 
     def show(self):
