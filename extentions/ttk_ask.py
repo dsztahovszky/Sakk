@@ -31,10 +31,10 @@ def ttk_ask_two_options(question_text: str, button1_text: str, button2_text: str
     btns_frame.pack(anchor=tk.CENTER)
     b_frame.pack()
 
+    win.attributes('-topmost', True)
     win.update_idletasks()
     win.geometry(f'+{int((win.winfo_screenwidth() / 2) - (win.winfo_width() / 2))}'
                  f'+{int((win.winfo_screenheight() / 2) - (win.winfo_height() / 2))}')
-    win.attributes('-topmost', True)
     win.mainloop()
     win.destroy()
     return answer.get()
@@ -61,10 +61,10 @@ def ttk_ask_str(question_text: str, question_font=..., alone=True, input_placeho
 
     f.pack()
 
+    win.attributes('-topmost', True)
     win.update_idletasks()
     win.geometry(f'+{int((win.winfo_screenwidth() / 2) - (win.winfo_width() / 2))}'
                  f'+{int((win.winfo_screenheight() / 2) - (win.winfo_height() / 2))}')
-    win.attributes('-topmost', True)
     win.mainloop()
     win.destroy()
     return answer.get()
@@ -78,10 +78,10 @@ class Message:
         self.label = tk.Label(self.win, text=msg_text, font=msg_font)
         self.label.pack(padx=5, pady=8)
 
+        self.win.attributes('-topmost', True)
         self.win.update_idletasks()
         self.win.geometry(f'+{int((self.win.winfo_screenwidth() / 2) - (self.win.winfo_width() / 2))}'
                           f'+{int((self.win.winfo_screenheight() / 2) - (self.win.winfo_height() / 2))}')
-        self.win.attributes('-topmost', True)
         self.win.update()
 
     def show(self):
