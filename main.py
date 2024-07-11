@@ -461,6 +461,7 @@ class OnlineChessWindow(tk.Tk):
         print(event.widget.img)
 
     def close(self):
+        self.focus_force()
         self.server.close_server()
         self.update_idletasks()
         for i in range(1, 101):
