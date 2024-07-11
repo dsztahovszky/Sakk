@@ -423,7 +423,7 @@ class OnlineChessWindow(tk.Tk):
 
                 Thread(target=answ).start()
                 while self.answer == '':
-                    self.update()
+                    pass
                 if self.answer == 'newgame':
                     event.widget.config(activebackground='lightgrey' if bg == '#2a2a2a' else '#2a2a2a', bg=bg)
                     OnlineChessWindow.prev_widget["state"] = tk.NORMAL
