@@ -363,37 +363,38 @@ class OnlineChessWindow(tk.Tk):
 
                 def get_others_step():
                     step = self.server.receive()
-                    from_ = tuple(step.split()[1])
-                    to = tuple(step.split()[2])
-                    if step.split()[0] == 'step':
-                        prev = self.btns[int(from_[1])][from_[0]]
-                        prev_img = prev.img.split(maxsplit=1)
-                        act = self.btns[int(to[1])][to[0]]
-                        act.config(
-                            image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
-                        act.img = ' '.join(prev_img)
-                        prev.config(image=self.imgs['empty'])
-                        prev.img = 'empty'
-                        self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
-                        self.next = 'black' if self.next == 'white' else 'white'
-                    elif step.split()[0] == 'win':
-                        self.btns[int(from_[1])][from_[0]]["state"] = tk.DISABLED
-                        bbg = self.btns[int(to[1])][to[0]]['bg']
-                        self.btns[int(to[1])][to[0]].config(activebackground='red', bg='red')
-                        if ttk_ask_two_options(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.',
-                                               'Kérek új játékot!', 'Bezárom az alkalmazást', ('Calibri', 20)) == 0:
-                            self.server.send_message('newgame')
-                            self.btns[int(to[1])][to[0]].config(
-                                activebackground='lightgrey' if bbg == '#2a2a2a' else '#2a2a2a', bg=bbg)
-                            for btnrow in self.btns:
-                                for cbtn in btnrow.values():
-                                    cbtn.config(image=self.imgs['empty'])
-                                    cbtn.img = 'empty'
-                            self.set_standard_images()
-                        else:
-                            self.server.send_message('close')
-                            self.close()
-                        self.winner_var.set(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.')
+                    if step is not None:
+                        from_ = tuple(step.split()[1])
+                        to = tuple(step.split()[2])
+                        if step.split()[0] == 'step':
+                            prev = self.btns[int(from_[1])][from_[0]]
+                            prev_img = prev.img.split(maxsplit=1)
+                            act = self.btns[int(to[1])][to[0]]
+                            act.config(
+                                image=self.imgs[prev_img[0]]['fore' if 'pawn' in prev_img[1] else 'back'][prev_img[1]])
+                            act.img = ' '.join(prev_img)
+                            prev.config(image=self.imgs['empty'])
+                            prev.img = 'empty'
+                            self.next_lbl_var.set(f'Következő játékos: {"fekete" if self.next == "white" else "fehér"}')
+                            self.next = 'black' if self.next == 'white' else 'white'
+                        elif step.split()[0] == 'win':
+                            self.btns[int(from_[1])][from_[0]]["state"] = tk.DISABLED
+                            bbg = self.btns[int(to[1])][to[0]]['bg']
+                            self.btns[int(to[1])][to[0]].config(activebackground='red', bg='red')
+                            if ttk_ask_two_options(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.',
+                                                   'Kérek új játékot!', 'Bezárom az alkalmazást', ('Calibri', 20)) == 0:
+                                self.server.send_message('newgame')
+                                self.btns[int(to[1])][to[0]].config(
+                                    activebackground='lightgrey' if bbg == '#2a2a2a' else '#2a2a2a', bg=bbg)
+                                for btnrow in self.btns:
+                                    for cbtn in btnrow.values():
+                                        cbtn.config(image=self.imgs['empty'])
+                                        cbtn.img = 'empty'
+                                self.set_standard_images()
+                            else:
+                                self.server.send_message('close')
+                                self.close()
+                            self.winner_var.set(f'Nyert a {"fekete" if self.color == "white" else "fehér"} játékos.')
 
                 get_others_step_thread = Thread(target=get_others_step, daemon=True)
                 get_others_step_thread.start()
