@@ -400,6 +400,7 @@ class OnlineChessWindow(tk.Tk):
                                         cbtn.config(image=self.imgs['empty'])
                                         cbtn.img = 'empty'
                                 self.set_standard_images()
+                                self.focus_force()
                             else:
                                 self.attributes('-disabled', False)
                                 self.server.send_message('close')
