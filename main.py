@@ -422,6 +422,7 @@ class OnlineChessWindow(tk.Tk):
                     self.answer = self.server.receive()
 
                 Thread(target=answ).start()
+                self.update()
                 while self.answer == '':
                     pass
                 if self.answer == 'newgame':
@@ -438,8 +439,9 @@ class OnlineChessWindow(tk.Tk):
                         self.color = self.server.receive().split()[1]
 
                     Thread(target=get_color).start()
+                    self.update()
                     while self.color == '':
-                        self.update()
+                        pass
                     self.color_lbl_var.set(f'Saját szín: {"fehér" if self.color == "white" else "fekete"}')
                     self.next = 'white'
                     self.next_lbl_var.set('Következő játékos: fehér')
