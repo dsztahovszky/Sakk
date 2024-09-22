@@ -1,10 +1,10 @@
 import socket
 
 
-def start_server(host='0.0.0.0', port=12345):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+def start_server(host='', port=40674):
+    with socket.socket() as s:
         s.bind((host, port))
-        s.listen()
+        s.listen(5)
         print(f'Szerver elindult a következő címen: {host}:{port}')
 
         conn, addr = s.accept()

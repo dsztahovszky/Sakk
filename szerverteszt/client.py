@@ -1,18 +1,21 @@
 import socket
 
 
-def start_client(host='176.63.5.255', port=12345):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+def start_client(host=input('Szerver IP-címe: '), port=40674):
+    with socket.socket() as s:
         s.connect((host, port))
         print(f'Kapcsolódás a szerverhez: {host}:{port}')
 
         while True:
-            message = input("Írj egy üzenetet (vagy 'exit' a kilépéshez): ")
-            if message.lower() == 'exit':
-                break
-            s.sendall(message.encode())
+            # message = input("Írj egy üzenetet (vagy 'exit' a kilépéshez): ")
+            # if message.lower() == 'exit':
+            #     break
+            # s.sendall(message.encode())
             data = s.recv(1024)
-            print(f'Válasz: {data.decode()}')
+            if data:
+                print(f'Válasz: {data.decode()}')
+            else:
+                break
 
 
 if __name__ == "__main__":
