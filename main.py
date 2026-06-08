@@ -6,7 +6,7 @@ from time import sleep
 from tkinter.messagebox import showerror
 from typing import Literal
 
-import requests
+# import requests
 from PIL import Image, ImageTk
 
 from extentions.communication.chess_server import ChessServer
@@ -21,8 +21,8 @@ def get_internal_ip():
 
 
 def get_external_ip():
-    response = requests.get('https://api.ipify.org')
-    external_ip = response.text
+    # response = requests.get('https://api.ipify.org')
+    external_ip = "erre úgysincs szükséged"  # response.text
     return external_ip
 
 
